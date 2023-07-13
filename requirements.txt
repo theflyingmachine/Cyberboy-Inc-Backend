@@ -1,0 +1,32 @@
+# Django Requirements
+Django==4.2.3
+django-environ==0.10.0
+djangorestframework==3.14.0
+django-reversion==5.0.4
+# Redis
+django-redis==5.3.0
+# Django Encryped Field
+django-fernet-fields==0.6
+
+# UWSGI
+uwsgi==2.0.19.1
+
+# JWT
+PyJWT==2.4.0
+
+# Swagger
+drf-yasg==1.21.6
+
+# Postgres Driver
+psycopg2==2.8.6
+
+requests==2.31.0
+
+#sentry
+sentry-sdk==1.14.0
+
+# gunicorn
+gunicorn==20.1.0
+
+django-cors-headers==4.2.0
+
