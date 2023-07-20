@@ -20,27 +20,13 @@ from django.urls import re_path, path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
 
-# from apps.profiles.urls import profile_urls
-# from apps.profiles import urls as profiles_urls
-from apps.profiles.views import Profile, UploadCSVData
+from apps.profiles.views import Profile
 
 root_path = 'api'
 all_urls = [
     # # profile APIs
-    # path(f'{root_path}/v1/login', Profile.as_view(actions={'post': 'login'}),
-    #      name="Login Request", ),
-    path(f'{root_path}/v1/upload-csv', UploadCSVData.as_view(actions={'post': 'upload_csv'}),
-         name="Upload CSV", ),
-    # profile APIs
-    path(f'{root_path}/v1/people/list', Profile.as_view(actions={'get': 'list_people'}),
-         name="List People", ),
-    path(f'{root_path}/v1/people/email', Profile.as_view(actions={'get': 'produce_email'}),
-         name="Email People", ),
-    path(f'{root_path}/v1/people/<uuid:person_id>',
-         Profile.as_view(actions={'put': 'update_people',
-                                  'delete': 'delete_people'}), name="Manage People", ),
-    path(f'{root_path}/v1/people/add',
-         Profile.as_view(actions={'post': 'add_people'}), name="Add People", ),
+    path(f'{root_path}/v1/process-email', Profile.as_view(actions={'get': 'process_email'}),
+         name="Email Processing", ),
 ]
 
 schema_view = get_schema_view(

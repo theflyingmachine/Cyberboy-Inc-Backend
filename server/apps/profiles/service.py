@@ -3,10 +3,10 @@ import hashlib
 import os
 from datetime import datetime
 from io import StringIO
-import requests
 
-from django.core.files.storage import FileSystemStorage
+import requests
 from django.conf import settings
+from django.core.files.storage import FileSystemStorage
 
 from apps.profiles.models import People
 
@@ -22,7 +22,7 @@ class ProfileService:
         person.account_status = 'DELETED'
         person.active = False
         person.save()
-        return True
+        return person
 
     def update_profile(self, person_uuid, new_data):
         # Set Account Status Disabled on Inactivate and Clean Data format
@@ -99,7 +99,62 @@ class ProfileService:
                             )
             person.save()
             self.get_profile_image(person)
-            records_count+=1
+            records_count += 1
         return records_count
 
+#
+# import json
+# import time
+#
+# from kafka import KafkaProducer
+#
+# ORDER_KAFKA_TOPIC = "order_detail"
+# ORDER_LIMIT = 15
+#
+# producer = KafkaProducer(bootstrap_servers="localhost:29092")
+#
+# print("Going to be generating order after 10 seconds")
+# print("Will generate one unique order every 5 seconds")
+# time.sleep(10)
+#
+# for i in range(ORDER_LIMIT):
+#     data = {
+#         "order_id": i,
+#         "user_id": f"tom_{i}",
+#         "total_cost": i,
+#         "items": "burger,sandwich",
+#     }
+#
+#     producer.send("order_details", json.dumps(data).encode("utf-8"))
+#     print(f"Done Sending..{i}")
+#     time.sleep(5)
 
+# import json
+#
+# from kafka import KafkaConsumer
+# from kafka import KafkaProducer
+#
+# ORDER_KAFKA_TOPIC = "order_details"
+# ORDER_CONFIRMED_KAFKA_TOPIC = "order_confirmed"
+#
+# consumer = KafkaConsumer(
+#     ORDER_KAFKA_TOPIC,
+#     bootstrap_servers="localhost:29092"
+# )
+# producer = KafkaProducer(bootstrap_servers="localhost:29092")
+#
+# print("Gonna start listening")
+# while True:
+#     for message in consumer:
+#         print("Ongoing transaction..")
+#         consumed_message = json.loads(message.value.decode())
+#         print(consumed_message)
+#         user_id = consumed_message["user_id"]
+#         total_cost = consumed_message["total_cost"]
+#         data = {
+#             "customer_id": user_id,
+#             "customer_email": f"{user_id}@gmail.com",
+#             "total_cost": total_cost
+#         }
+#         print("Successful transaction..")
+#         producer.send(ORDER_CONFIRMED_KAFKA_TOPIC, json.dumps(data).encode("utf-8"))

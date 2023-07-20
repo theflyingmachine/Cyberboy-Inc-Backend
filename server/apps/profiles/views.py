@@ -5,6 +5,7 @@ from datetime import datetime
 from io import StringIO
 
 from django.conf import settings
+from django.db import IntegrityError, DataError
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import viewsets
@@ -86,10 +87,51 @@ class Profile(viewsets.ViewSet):
         tags=["People APIs"],
     )
     def list_people(self, request):
-        time.sleep(1)
-        all_people = People.objects.all().order_by('account_status', 'first_name')
+        all_people = People.objects.all().exclude(account_status='DELETED').order_by('account_status', 'first_name')
         serializer = PersonSerializer(instance=all_people, many=True)
         return response_200(serializer.data)
+
+
+    @swagger_auto_schema(
+    responses={400: error_response,
+               200: custom_response('List of People', PersonSerializer)
+               },
+    operation_summary="List of People",
+    tags=["People APIs"],
+    )
+    def produce_email(self, request):
+        import json
+        from kafka import KafkaProducer
+        USER_EMAIL_KAFKA_TOPIC = "user_email"
+        producer = KafkaProducer(bootstrap_servers='localhost:29092')
+        users = People.objects.all()
+        print("Gonna start listening")
+        for user in users:
+            print("Ongoing transaction..")
+            user_id = user.mobile
+            user_email = user.email
+            data = {
+                "customer_id": user_id,
+                "customer_email": user_email,
+            }
+            d = json.dumps(data).encode("utf-8")
+            print(d)
+            print("Successful transaction..")
+            producer.send(USER_EMAIL_KAFKA_TOPIC, d)
+
+
+
+        # topic = 'your_topic_name'  # Replace with the desired Kafk1a topic name
+        # data = {
+        #     "order_id": 1,
+        #     "user_id": f"tom_",
+        #     "total_cost": 111,
+        #     "items": "burger,sandwich",
+        # }
+        # producer.send(topic, value=data.encode())
+        producer.flush()
+        producer.close()
+        return response_200({'Data Generated': 'Done'})
 
     @swagger_auto_schema(
         responses={400: error_response,
@@ -102,8 +144,8 @@ class Profile(viewsets.ViewSet):
     def delete_people(self, request, person_id):
         try:
             person_id = UUIDSerializer.validate_and_map({'id': person_id})['id']
-            status = ProfileService().delete_profile(person_id)
-            return response_200(status)
+            deleted_person = ProfileService().delete_profile(person_id)
+            return response_200(PersonSerializer(instance=deleted_person).data)
         except ResourceNotFound as e:
             return response_400(e)
 
@@ -122,7 +164,7 @@ class Profile(viewsets.ViewSet):
             new_data = json.loads(request.body.decode('utf-8'))
             person = ProfileService().update_profile(person_id, new_data)
             return response_200(PersonSerializer(instance=person).data)
-        except ResourceNotFound as e:
+        except (ResourceNotFound, IntegrityError, DataError) as e:
             return response_400(e)
 
     @swagger_auto_schema(
